@@ -13,6 +13,8 @@ app = Flask( __name__ )
 def seConnecter( matricule , mdp ) :
 	visiteur = modeleGSBRV.seConnecter( matricule , mdp )
 	
+	
+	
 	if visiteur != None and len( visiteur ) != 0 :
 		reponse = make_response( json.dumps( visiteur ) )
 		reponse.mimetype = 'application/json'
@@ -82,14 +84,36 @@ def getMedicaments() :
 		reponse.mimetype = 'application/json'
 		reponse.status_code = 404
 	return reponse
+
+@app.route( '/motifs' , methods = [ 'GET' ] )
+def getMotifs() :
+	motifs = modeleGSBRV.getMotifs()
+	
+	if motifs != None :
+		reponse = make_response( json.dumps( motifs ) )
+		reponse.mimetype = 'application/json'
+		reponse.status_code = 200
+	else :
+		reponse = make_response( '' )
+		reponse.mimetype = 'application/json'
+		reponse.status_code = 404
+	return reponse
+	
 	
 @app.route( '/rapports' , methods = [ 'POST' ] )
 def addRapportVisite() :
 	unRapport = json.loads( request.data )
 	numRapport = modeleGSBRV.enregistrerRapportVisite( 	unRapport[ 'matricule' ] , 
-																unRapport[ 'praticien' ] ,
 																unRapport[ 'visite' ] ,
-																unRapport[ 'bilan' ] )
+																
+																unRapport[ 'bilan' ] ,
+																
+																unRapport[ 'dateSaisie' ] ,
+																unRapport[ 'coeffConfiance' ],
+																unRapport[ 'praticien' ] ,
+																unRapport[ 'motif' ]
+																
+																 )
 	
 	reponse = make_response( '' )												
 	if numRapport != None :
@@ -98,15 +122,14 @@ def addRapportVisite() :
 	else :
 		reponse.status_code = 409
 	return reponse
-	
 
 @app.route( '/rapports/echantillons/<matricule>/<numRapport>' , methods = [ 'POST' ] )
 def addEchantillonsOfferts( matricule , numRapport ) :
 	echantillons = json.loads( request.data )
 	nbEchantillons = modeleGSBRV.enregistrerEchantillonsOfferts( matricule , numRapport , echantillons )
-	
-	
-	reponse = make_response( '' )												
+
+
+	reponse = make_response( '' )
 	if numRapport != None :
 		reponse.headers[ 'Location' ] = '/rapports/echantillons/%s/%s' % ( matricule , numRapport )
 		reponse.status_code = 201
